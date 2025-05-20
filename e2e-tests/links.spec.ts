@@ -36,74 +36,26 @@ async function startTracing(page: Page, link: string) {
 }
 
 test.describe("TxTracer Viewers Links", () => {
-  test("should successfully trace ton.cx link", async ({page}: {page: Page}) => {
-    await wait()
-    await page.goto("/")
-    await startTracing(page, TON_CX)
-    await checkPageLoaded(page)
-  })
+  const tracingCases = [
+    ["ton.cx", TON_CX],
+    ["ton.cx testnet", TON_CX_TESTNET],
+    ["tonviewer", TONVIEWER],
+    ["tonviewer testnet", TONVIEWER_TESTNET],
+    ["tonscan", TONSCAN],
+    ["tonscan testnet", TONSCAN_TESTNET],
+    ["toncoin", TONCOIN],
+    ["toncoin testnet", TONCOIN_TESTNET],
+    ["dton", DTON],
+    ["dton testnet", DTON_TESTNET],
+  ]
 
-  test("should successfully trace testnet ton.cx link", async ({page}: {page: Page}) => {
-    await wait()
-    await page.goto("/")
-    await startTracing(page, TON_CX_TESTNET)
-    await checkPageLoaded(page)
-  })
-
-  test("should successfully trace tonviewer link", async ({page}: {page: Page}) => {
-    await wait()
-    await page.goto("/")
-    await startTracing(page, TONVIEWER)
-    await checkPageLoaded(page)
-  })
-
-  test("should successfully trace tonscan link", async ({page}: {page: Page}) => {
-    await wait()
-    await page.goto("/")
-    await startTracing(page, TONSCAN)
-    await checkPageLoaded(page)
-  })
-
-  test("should successfully trace toncoin link", async ({page}: {page: Page}) => {
-    await wait()
-    await page.goto("/")
-    await startTracing(page, TONCOIN)
-    await checkPageLoaded(page)
-  })
-
-  test("should successfully trace testnet tonviewer link", async ({page}: {page: Page}) => {
-    await wait()
-    await page.goto("/")
-    await startTracing(page, TONVIEWER_TESTNET)
-    await checkPageLoaded(page)
-  })
-
-  test("should successfully trace testnet tonscan link", async ({page}: {page: Page}) => {
-    await wait()
-    await page.goto("/")
-    await startTracing(page, TONSCAN_TESTNET)
-    await checkPageLoaded(page)
-  })
-
-  test("should successfully trace testnet toncoin link", async ({page}: {page: Page}) => {
-    await wait()
-    await page.goto("/")
-    await startTracing(page, TONCOIN_TESTNET)
-    await checkPageLoaded(page)
-  })
-
-  test("should successfully trace dton link", async ({page}: {page: Page}) => {
-    await wait()
-    await page.goto("/")
-    await startTracing(page, DTON)
-    await checkPageLoaded(page)
-  })
-
-  test("should successfully trace testnet dton link", async ({page}: {page: Page}) => {
-    await wait()
-    await page.goto("/")
-    await startTracing(page, DTON_TESTNET)
-    await checkPageLoaded(page)
+  tracingCases.forEach(([name, link]) => {
+    test(`should successfully trace '${name}' link`, async ({page}) => {
+      await wait() // TODO: Remove that. Cause we have only 1 rps from toncenter without API key
+      await page.goto("/")
+      await startTracing(page, link)
+      await checkPageLoaded(page)
+    })
   })
 })
 
