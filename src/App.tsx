@@ -11,6 +11,7 @@ import {ThemeToggleButton} from "@features/themeSwitcher/ui/ThemeToggleButton"
 
 import {ErrorBoundary} from "./app/ErrorBoundary"
 const TracePage = React.lazy(() => import("./pages/TracePage/TracePage"))
+const PlaygroundPage = React.lazy(() => import("./pages/PlaygroundPage/PlaygroundPage"))
 
 function AppShell() {
   const {error, clearError, setError} = useGlobalError()
@@ -36,6 +37,14 @@ function AppShell() {
               element={
                 <Suspense fallback={<FullScreenLoader baseMessage="Loading TxTracer..." />}>
                   <TracePage />
+                </Suspense>
+              }
+            />
+            <Route
+              path="/play"
+              element={
+                <Suspense fallback={<FullScreenLoader baseMessage="Loading Playground..." />}>
+                  <PlaygroundPage />
                 </Suspense>
               }
             />

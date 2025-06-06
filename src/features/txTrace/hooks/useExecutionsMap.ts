@@ -1,5 +1,5 @@
 import {useMemo} from "react"
-import type {TraceInfo} from "tact-asm/dist/trace"
+import type {TraceInfo} from "ton-assembly/dist/trace"
 
 export function useExecutionsMap(trace: TraceInfo | undefined): Record<number, number> {
   return useMemo(() => {

@@ -41,11 +41,13 @@ const tasmDarkTheme: editor.IStandaloneThemeData = {
 interface CodeEditorProps {
   readonly code: string
   readonly highlightLine?: number
-  readonly lineGas: Record<number, number>
-  readonly lineExecutions: Record<number, number>
-  readonly onLineClick: (line: number) => void
+  readonly lineGas?: Record<number, number>
+  readonly lineExecutions?: Record<number, number>
+  readonly onLineClick?: (line: number) => void
   readonly shouldCenter?: boolean
   readonly exitCode?: ExitCode
+  readonly readOnly?: boolean
+  readonly onChange?: (value: string) => void
 }
 
 interface CodeBlock {
@@ -72,9 +74,11 @@ const CodeEditor: React.FC<CodeEditorProps> = ({
   highlightLine,
   lineGas,
   lineExecutions,
-  onLineClick,
+  onLineClick = () => {},
   shouldCenter = true,
   exitCode,
+  readOnly = true,
+  onChange,
 }) => {
   const monaco = useMonaco()
   const editorRef = useRef<monacoTypes.editor.IStandaloneCodeEditor | null>(null)
@@ -139,34 +143,36 @@ const CodeEditor: React.FC<CodeEditorProps> = ({
     // 2. if a line was executed,
     //    1. if the user hovers over this line, we highlight it with deep blue
     //    2. otherwise highlight it as clickable
-    for (let line = 1; line <= totalLines; line++) {
-      const text = model.getLineContent(line)
-      const isEmpty = text.trim() === ""
-      if (isEmpty) continue
+    if (lineGas && Object.keys(lineGas).length > 0) {
+      for (let line = 1; line <= totalLines; line++) {
+        const text = model.getLineContent(line)
+        const isEmpty = text.trim() === ""
+        if (isEmpty) continue
 
-      const wasExecuted = lineGas[line] !== undefined
+        const wasExecuted = lineGas[line] !== undefined
 
-      if (wasExecuted && isCtrlPressed) {
-        const className =
-          hoveredLine === line
-            ? "clickable-line ctrl-pressed hovered-line"
-            : "clickable-line ctrl-pressed"
-        allDecorations.push({
-          range: new monaco.Range(line, 1, line, 1),
-          options: {
-            isWholeLine: true,
-            className,
-            linesDecorationsClassName: "clickable-line-decoration",
-          },
-        })
-      } else if (!wasExecuted) {
-        allDecorations.push({
-          range: new monaco.Range(line, 1, line, model.getLineLength(line) + 1),
-          options: {
-            isWholeLine: false,
-            inlineClassName: "faded-text",
-          },
-        })
+        if (wasExecuted && isCtrlPressed) {
+          const className =
+            hoveredLine === line
+              ? "clickable-line ctrl-pressed hovered-line"
+              : "clickable-line ctrl-pressed"
+          allDecorations.push({
+            range: new monaco.Range(line, 1, line, 1),
+            options: {
+              isWholeLine: true,
+              className,
+              linesDecorationsClassName: "clickable-line-decoration",
+            },
+          })
+        } else if (!wasExecuted) {
+          allDecorations.push({
+            range: new monaco.Range(line, 1, line, model.getLineLength(line) + 1),
+            options: {
+              isWholeLine: false,
+              inlineClassName: "faded-text",
+            },
+          })
+        }
       }
     }
 
@@ -198,6 +204,8 @@ const CodeEditor: React.FC<CodeEditorProps> = ({
 
     const model = editorRef.current.getModel()
     if (!model) return
+
+    if (!lineGas || Object.keys(lineGas).length === 0) return
 
     const totalLines = model.getLineCount()
     const foldingRanges: FoldingRange[] = []
@@ -271,7 +279,7 @@ const CodeEditor: React.FC<CodeEditorProps> = ({
         (e.event.ctrlKey || e.event.metaKey)
       ) {
         const lineNumber = e.target.position?.lineNumber
-        if (lineNumber && lineGas[lineNumber] !== undefined) onLineClick(lineNumber)
+        if (lineNumber && lineGas && lineGas[lineNumber] !== undefined) onLineClick(lineNumber)
       }
     })
     return () => disposable.dispose()
@@ -344,7 +352,7 @@ const CodeEditor: React.FC<CodeEditorProps> = ({
           }
         }
 
-        if (tokenType.includes("instruction")) {
+        if (lineExecutions && lineGas && tokenType.includes("instruction")) {
           const gasUsed = lineGas[lineNumber]
           const executionCount = lineExecutions[lineNumber]
           const hoverContents: IMarkdownString[] = []
@@ -396,7 +404,7 @@ const CodeEditor: React.FC<CodeEditorProps> = ({
     if (isCtrlPressed) {
       const disposable = editorRef.current.onMouseMove((e: editor.IEditorMouseEvent) => {
         const lineNumber = e.target.position?.lineNumber
-        if (lineNumber && lineGas[lineNumber] !== undefined) {
+        if (lineNumber && lineGas && lineGas[lineNumber] !== undefined) {
           setHoveredLine(lineNumber)
         } else setHoveredLine(null)
       })
@@ -491,7 +499,7 @@ const CodeEditor: React.FC<CodeEditorProps> = ({
           theme="tasmTheme"
           options={{
             minimap: {enabled: false},
-            readOnly: true,
+            readOnly,
             lineNumbers: "on",
             automaticLayout: true,
             scrollBeyondLastLine: false,
@@ -510,14 +518,21 @@ const CodeEditor: React.FC<CodeEditorProps> = ({
             editorRef.current = editor
             setEditorReady(true)
           }}
-          onChange={updateDecorations}
+          onChange={value => {
+            if (onChange && value !== undefined) {
+              onChange(value)
+            }
+            updateDecorations()
+          }}
         />
       </div>
-      <div className={styles.editorHint}>
-        <kbd>{isMac ? "⌘" : "Ctrl"}</kbd> + <kbd>Click</kbd> to navigate to trace step
-        <span className={styles.hintDivider}>|</span>
-        <kbd>←</kbd> <kbd>→</kbd> to step through trace
-      </div>
+      {readOnly && (
+        <div className={styles.editorHint}>
+          <kbd>{isMac ? "⌘" : "Ctrl"}</kbd> + <kbd>Click</kbd> to navigate to trace step
+          <span className={styles.hintDivider}>|</span>
+          <kbd>←</kbd> <kbd>→</kbd> to step through trace
+        </div>
+      )}
     </>
   )
 }

@@ -1,5 +1,5 @@
 import React, {type JSX, useState} from "react"
-import {type StackElement} from "tact-asm/dist/trace"
+import {type StackElement} from "ton-assembly/dist/trace"
 import {Cell} from "@ton/core"
 import {motion, AnimatePresence} from "framer-motion"
 

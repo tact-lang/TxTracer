@@ -1,5 +1,5 @@
 import {useCallback, useEffect, useMemo, useState} from "react"
-import type {TraceInfo, StackElement, Step} from "tact-asm/dist/trace"
+import type {TraceInfo, StackElement, Step} from "ton-assembly/dist/trace"
 
 export interface UseTraceStepperReturn {
   readonly selectedStep: number
@@ -17,9 +17,9 @@ export interface UseTraceStepperReturn {
   readonly totalSteps: number
 }
 
-function getCurrentStep(trace: TraceInfo | undefined, index: number): Step | null {
+function getCurrentStep(trace: TraceInfo | undefined, index: number): Step | undefined {
   if (!trace || index < 0 || index >= trace.steps.length) {
-    return null
+    return undefined
   }
   return trace.steps[index]
 }

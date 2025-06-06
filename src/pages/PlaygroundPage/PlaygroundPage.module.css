@@ -1,0 +1,138 @@
+.traceViewWrapper {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  overflow: hidden;
+  position: relative;
+}
+
+/* header */
+
+.txStatusContainer {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  margin-left: var(--spacing-sm);
+}
+
+.mainActionContainer {
+  justify-self: flex-end;
+}
+
+.appContainer {
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+  overflow: hidden;
+  background-color: var(--color-background-secondary);
+}
+
+.mainContent {
+  display: grid;
+  grid-template-columns: calc(100% - 415px - var(--spacing-sm)) 400px;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  transition: height var(--transition-duration-normal) ease;
+  gap: var(--spacing-sm);
+  padding: 0 var(--spacing-sm) var(--spacing-sm) var(--spacing-sm);
+}
+
+.titleTon {
+  -webkit-text-fill-color: transparent;
+  background: linear-gradient(89deg, #2b82eb, #1cc8ff);
+  background-clip: text;
+  -webkit-background-clip: text;
+  font-feature-settings:
+    "clig" off,
+    "liga" off;
+}
+
+.inputCard {
+  width: 100%;
+  max-width: 720px;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+}
+
+.editorContainer {
+  width: 100%;
+  height: 300px;
+  border-radius: var(--border-radius-lg);
+  overflow: hidden;
+  border: 1px solid var(--color-border);
+  background-color: var(--color-background-primary);
+}
+
+.executeButtonContainer {
+  display: flex;
+  justify-content: center;
+}
+
+.executeButton {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  padding: var(--spacing-sm) var(--spacing-md);
+  background-color: var(--color-primary);
+  color: white;
+  border-radius: var(--border-radius-md);
+  font-size: var(--font-size-sm);
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.executeButton:hover:not(:disabled) {
+  background-color: var(--color-secondary);
+}
+
+.executeButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.navButton {
+  flex: 1;
+  padding: var(--spacing-xs) var(--spacing-sm);
+  font-size: var(--font-size-sm);
+}
+
+.externalLinksContainer {
+  position: absolute;
+  top: var(--spacing-lg);
+  right: var(--spacing-lg);
+  display: flex;
+  gap: var(--spacing-md);
+}
+
+.iconLink {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-text-secondary);
+  transition: color var(--transition-duration-fast) ease;
+}
+
+.iconLink:hover {
+  color: var(--color-text-primary);
+}
+
+@media (max-width: 768px) {
+  .appContainer {
+    flex-direction: column;
+  }
+
+  .mainContent {
+    grid-template-columns: 1fr;
+    grid-template-rows: 1fr auto;
+    gap: 0;
+    padding: 0;
+  }
+
+  .editorContainer {
+    height: 250px;
+  }
+}

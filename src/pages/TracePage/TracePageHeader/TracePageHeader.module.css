@@ -13,13 +13,6 @@
   gap: var(--spacing-sm);
 }
 
-.txStatusContainer {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-md);
-  margin-left: var(--spacing-sm);
-}
-
 .logo {
   display: flex;
   align-items: center;
@@ -65,9 +58,7 @@
   text-decoration: none;
 }
 
-.searchInputContainer {
-  flex-grow: 1;
-  max-width: 600px;
+.pageTitle {
 }
 
 .headerLinks {

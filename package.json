@@ -20,7 +20,10 @@
   },
   "dependencies": {
     "@monaco-editor/react": "^4.7.0",
+    "@ton/core": "^0.60.1",
     "@ton/crypto": "^3.3.0",
+    "@ton/sandbox": "^0.32.1",
+    "@ton/test-utils": "^0.7.0",
     "@tonstudio/txtracer-core": "^0.1.0",
     "buffer": "^6.0.3",
     "framer-motion": "^12.11.0",
@@ -29,7 +32,7 @@
     "react-dom": "^19.1.0",
     "react-icons": "^5.5.0",
     "react-router-dom": "^7.6.0",
-    "tact-asm": "^0.0.5"
+    "ton-assembly": "../tasm/ton-assembly-0.0.2.tgz"
   },
   "devDependencies": {
     "@esbuild-plugins/node-globals-polyfill": "^0.2.3",

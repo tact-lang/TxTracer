@@ -1,21 +1,21 @@
 import React, {useState, useEffect, Suspense, useCallback} from "react"
-import {FiGithub, FiClock, FiX} from "react-icons/fi"
+import {FiGithub, FiClock, FiX, FiCode} from "react-icons/fi"
+import {Link} from "react-router-dom"
 
 import {RetraceResultView} from "@features/txTrace/ui"
 import type {RetraceResultAndCode} from "@features/txTrace/ui"
-import StackViewer from "@shared/ui/StackViewer"
+import TraceSidePanel from "@shared/ui/TraceSidePanel"
 import {traceTx, normalizeGas} from "@features/txTrace/lib/traceTx"
 import {useGasMap, useTraceStepper, useExecutionsMap} from "@features/txTrace/hooks"
 import SearchInput from "@shared/ui/SearchInput"
 import InlineLoader from "@shared/ui/InlineLoader"
-import Button from "@shared/ui/Button"
 import {useGlobalError} from "@shared/lib/errorContext"
-import StepInstructionBlock, {
-  type InstructionDetail,
-} from "@features/txTrace/ui/StepInstructionBlock"
+import {type InstructionDetail} from "@features/txTrace/ui/StepInstructionBlock"
 import {useTxHistory, type TxHistoryEntry} from "@shared/lib/useTxHistory"
 import {shortenHash} from "@shared/lib/format"
 import StatusBadge, {type StatusType} from "@shared/ui/StatusBadge"
+
+import {TooltipHint} from "@shared/ui/TooltipHint"
 
 import TracePageHeader from "./TracePageHeader"
 
@@ -136,11 +136,29 @@ function TracePage() {
     [toggleDetails],
   )
 
+  const exitCode =
+    result?.result?.emulatedTx?.computeInfo !== "skipped"
+      ? result?.result?.emulatedTx?.computeInfo?.exitCode
+      : undefined
+  const txStatus =
+    result?.result?.emulatedTx?.computeInfo !== "skipped"
+      ? result?.result?.emulatedTx?.computeInfo?.success
+        ? "success"
+        : "failed"
+      : "success"
+
+  const stateUpdateHashOk = result?.result?.stateUpdateHashOk
+  const shouldShowStatusContainer = txStatus !== undefined || stateUpdateHashOk === false
+  const txStatusText = `Exit code: ${exitCode?.toString() ?? "unknown"}`
+
   return (
     <>
       {!result && (
         <div className={styles.inputPage}>
           <div className={styles.externalLinksContainer}>
+            <Link to="/play" title="TVM Assembly Playground" className={styles.iconLink}>
+              <FiCode size={24} />
+            </Link>
             <a
               href="https://github.com/tact-lang/txtracer"
               target="_blank"
@@ -265,26 +283,35 @@ function TracePage() {
 
       {result && (
         <div className={styles.traceViewWrapper}>
-          <TracePageHeader
-            inputValue={headerInputText}
-            onInputChange={setHeaderInputText}
-            onSubmit={handleHeaderSubmit}
-            loading={loading}
-            network={result?.network ?? "mainnet"}
-            txStatus={
-              result?.result?.emulatedTx?.computeInfo !== "skipped"
-                ? result?.result?.emulatedTx?.computeInfo?.success
-                  ? "success"
-                  : "failed"
-                : "success"
-            }
-            exitCode={
-              result?.result?.emulatedTx?.computeInfo !== "skipped"
-                ? result?.result?.emulatedTx?.computeInfo?.exitCode
-                : undefined
-            }
-            stateUpdateHashOk={result?.result?.stateUpdateHashOk}
-          />
+          <TracePageHeader pageTitle={""} network={result?.network ?? "mainnet"}>
+            <div className={styles.searchInputContainer}>
+              <SearchInput
+                value={headerInputText}
+                onChange={setHeaderInputText}
+                onSubmit={handleHeaderSubmit}
+                placeholder="Trace another transaction hash"
+                loading={loading}
+                autoFocus={false}
+                compact={true}
+              />
+            </div>
+
+            {shouldShowStatusContainer && (
+              <div className={styles.txStatusContainer}>
+                {txStatus && <StatusBadge type={txStatus} text={txStatusText} />}
+                {stateUpdateHashOk === false && (
+                  <TooltipHint
+                    tooltipText={
+                      "Because the transaction runs in a local sandbox, we can't always reproduce it exactly. Sandbox replay was incomplete, and some values may differ from those on the real blockchain."
+                    }
+                    placement="bottom"
+                  >
+                    <StatusBadge type="warning" text="Trace Incomplete" />
+                  </TooltipHint>
+                )}
+              </div>
+            )}
+          </TracePageHeader>
           <div className={styles.appContainer}>
             <div
               className={`${styles.mainContent} ${detailsExpanded ? styles.mainContentMinimized : ""}`}
@@ -302,92 +329,21 @@ function TracePage() {
                   />
                 </Suspense>
               </div>
-              <div className={styles.sidePanel}>
-                {currentStep && (
-                  <div className={styles.stepDetails}>
-                    <div className={styles.stepHeader}>
-                      <div className={styles.stepHeaderTop}>
-                        <span data-testid="step-counter-info" className={styles.stepCounter}>
-                          Step {selectedStep + 1} of {totalSteps}
-                        </span>
-                        <span
-                          data-testid="cumulative-gas-counter"
-                          className={styles.cumulativeGasCounter}
-                        >
-                          Used gas: {cumulativeGasSinceBegin}
-                        </span>
-                      </div>
-                      {instructionDetails.length > 0 && (
-                        <StepInstructionBlock
-                          steps={instructionDetails}
-                          currentIndex={selectedStep}
-                          itemHeight={32}
-                        />
-                      )}
-                      {instructionDetails.length === 0 &&
-                        currentStep &&
-                        currentStep.instructionName && (
-                          <div className={styles.stepInstructionBlock}>
-                            <span
-                              data-testid="current-instruction"
-                              className={styles.stepInstruction}
-                            >
-                              {currentStep.instructionName}
-                            </span>
-                            {currentStep.gasCost && (
-                              <span className={styles.stepGas}>{currentStep.gasCost} gas</span>
-                            )}
-                          </div>
-                        )}
-                      <div className={styles.navigationControls}>
-                        <Button
-                          data-testid="go-to-first-step-button"
-                          variant="ghost"
-                          onClick={goToFirstStep}
-                          className={styles.navButton}
-                          disabled={!canGoPrev || totalSteps === 0}
-                          title="Go to First Step"
-                        >
-                          First
-                        </Button>
-                        <Button
-                          data-testid="prev-step-button"
-                          variant="ghost"
-                          onClick={handlePrev}
-                          className={styles.navButton}
-                          disabled={!canGoPrev || totalSteps === 0}
-                          title="Previous Step"
-                        >
-                          Prev
-                        </Button>
-                        <Button
-                          data-testid="next-step-button"
-                          variant="ghost"
-                          onClick={handleNext}
-                          className={styles.navButton}
-                          disabled={!canGoNext || totalSteps === 0}
-                          title="Next Step"
-                        >
-                          Next
-                        </Button>
-                        <Button
-                          data-testid="go-to-last-step-button"
-                          variant="ghost"
-                          onClick={goToLastStep}
-                          className={styles.navButton}
-                          disabled={!canGoNext || totalSteps === 0}
-                          title="Go to Last Step"
-                        >
-                          Last
-                        </Button>
-                      </div>
-                    </div>
-                    <div className={styles.stackViewerContainer}>
-                      <StackViewer stack={currentStack} title="Stack" />
-                    </div>
-                  </div>
-                )}
-              </div>
+              <TraceSidePanel
+                selectedStep={selectedStep}
+                totalSteps={totalSteps}
+                currentStep={currentStep}
+                currentStack={currentStack}
+                canGoPrev={canGoPrev}
+                canGoNext={canGoNext}
+                onPrev={handlePrev}
+                onNext={handleNext}
+                onFirst={goToFirstStep}
+                onLast={goToLastStep}
+                placeholderMessage="No trace steps available."
+                instructionDetails={instructionDetails}
+                cumulativeGas={cumulativeGasSinceBegin}
+              />
             </div>
             <div
               className={`${styles.detailsSection} ${detailsExpanded ? styles.detailsSectionExpanded : ""}`}

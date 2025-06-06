@@ -1,6 +1,6 @@
 import React, {useState} from "react"
 
-import {type TraceInfo} from "tact-asm/dist/trace"
+import {type TraceInfo} from "ton-assembly/dist/trace"
 
 import type {TraceResult} from "@tonstudio/txtracer-core/dist/types"
 
